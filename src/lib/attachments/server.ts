@@ -174,6 +174,18 @@ export async function analyzeAttachment(
     );
   }
   let candidates: PhotoCandidate[] = [];
+  // When a list contains a known code, show its actual catalog name instead of
+  // a model-inferred device type. The extracted code still needs user review.
+  if (mode === "list") {
+    const catalog = getCatalogIndex();
+    for (const item of extracted.items) {
+      const { exact } = findPhotoCodeMatches(catalog, item.marking);
+      if (exact.length === 1) {
+        item.description = exact[0].name;
+        item.evidence = `${item.evidence} Название взято из каталога по прочитанному коду.`;
+      }
+    }
+  }
   if (mode === "photo" && extracted.items.length) {
     const item = extracted.items[0],
       catalog = getCatalogIndex();
