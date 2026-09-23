@@ -11,6 +11,10 @@ import type { ProductDetail, CatalogSearchResult } from "./types";
 const products = index.products.map((item) =>
   normalizeSummary(item, index.syncedAt),
 );
+
+export function getCatalogIndex() {
+  return products;
+}
 const detailCache = new Map<
   number,
   { expiresAt: number; product: ProductDetail }

@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
     "lint": "eslint .",
-    "test": "node --experimental-strip-types --test tests/catalog.test.mjs",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "catalog:sync": "node --env-file-if-exists=.env.local scripts/sync-catalog.mjs",
     "typecheck": "tsc --noEmit",
     "env:check": "node --env-file-if-exists=.env.local scripts/check-env.mjs"
