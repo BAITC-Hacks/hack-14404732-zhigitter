@@ -239,9 +239,15 @@ function ProductDetails({ id, city }: { id: number; city: string }) {
   );
 }
 
-export function CatalogBrowser({ city }: { city: string }) {
-  const [input, setInput] = useState("");
-  const [query, setQuery] = useState("");
+export function CatalogBrowser({
+  city,
+  initialQuery = "",
+}: {
+  city: string;
+  initialQuery?: string;
+}) {
+  const [input, setInput] = useState(initialQuery);
+  const [query, setQuery] = useState(initialQuery);
   const [page, setPage] = useState(1);
   const [result, setResult] = useState<CatalogSearchResult | null>(null);
   const [error, setError] = useState("");

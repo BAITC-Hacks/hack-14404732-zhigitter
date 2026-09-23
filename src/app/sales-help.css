@@ -1,0 +1,101 @@
+.sales-help-actions {
+  margin: 16px 22px 0;
+  padding: 16px;
+  border: 1px solid #cce0e9;
+  background: #f1f8fb;
+  border-radius: 13px;
+}
+.sales-help-actions strong {
+  display: block;
+  font-size: 15px;
+  color: #174a60;
+}
+.sales-help-actions span {
+  display: block;
+  margin: 5px 0 12px;
+  font-size: 12px;
+  color: #536c79;
+}
+.sales-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.sales-action-buttons button,
+.sales-help-answer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  border: 1px solid #c8dce5;
+  border-radius: 8px;
+  background: white;
+  color: #24596d;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.sales-action-buttons button:hover {
+  background: #dfeef4;
+}
+.sales-action-buttons button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.sales-help-answer {
+  border: 1px solid #c9e1dc;
+  background: #f1f9f6;
+  padding: 17px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  line-height: 1.7;
+}
+.sales-help-answer h3 {
+  font-size: 17px;
+  margin-bottom: 6px;
+  color: #235d50;
+}
+.sales-help-answer p {
+  font-size: 14px;
+}
+.sales-help-answer details {
+  margin: 12px 0;
+  font-size: 13px;
+}
+.sales-help-answer summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.sales-help-answer textarea {
+  width: 100%;
+  min-height: 180px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #cbded8;
+  background: white;
+  border-radius: 8px;
+  font: inherit;
+  line-height: 1.6;
+  resize: vertical;
+}
+.sales-help-answer [role="status"] {
+  display: block;
+  font-size: 11px;
+  color: #536e64;
+  margin-top: 6px;
+}
+@media (max-width: 600px) {
+  .sales-help-actions {
+    margin-inline: 12px;
+    padding: 13px;
+  }
+  .sales-action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .sales-action-buttons button {
+    padding: 8px 6px;
+  }
+}

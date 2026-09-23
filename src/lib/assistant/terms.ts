@@ -1,8 +1,10 @@
 import type { Selection, Terms } from "./types";
+import type { ProductDetail } from "../catalog/types";
 
 export function purchaseTerms(
   topics: Selection["topics"],
   language: "ru" | "kk",
+  product?: ProductDetail,
 ): Terms[] {
   const kk = language === "kk";
   const data = {
@@ -25,9 +27,17 @@ export function purchaseTerms(
         : "Общая минимальная сумма или партия в проверенном источнике не указана. Поле кратности в карточке товара не считаем автоматически минимальной партией — условие нужно подтвердить для конкретного артикула.",
     },
   };
+  if (product?.properties.KRATNOST_MIN) {
+    data.minimum.text = kk
+      ? `${product.article}: API-дегі сату еселігі — ${product.properties.KRATNOST_MIN}. Тапсырыстың ең аз жалпы сомасы дереккөзде көрсетілмеген. Еселік пен ең аз сома — бөлек шарттар.`
+      : `Для ${product.article} кратность продажи в API — ${product.properties.KRATNOST_MIN}. Это шаг количества товара. Минимальная общая сумма заказа в источнике не указана; кратность и минимальная сумма — разные условия.`;
+  }
   return [...new Set(topics)].map((topic) => ({
     ...data[topic],
-    url: "https://ekt.kz/checkout-delivery/",
+    url:
+      topic === "minimum" && product?.properties.KRATNOST_MIN
+        ? product.url || product.source
+        : "https://ekt.kz/checkout-delivery/",
     checkedAt: "2026-09-23",
   }));
 }

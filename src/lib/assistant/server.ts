@@ -7,6 +7,7 @@ import { selectProducts } from "./openai";
 import { purchaseTerms } from "./terms";
 import { resolveImportedItems } from "../attachments/import-matching";
 import { getClarification } from "./clarification";
+import { resolveSalesHelp, salesHelpResult } from "./sales-help";
 import { cities } from "./types";
 import type {
   AssistantCard,
@@ -20,7 +21,10 @@ export async function answerRequest(
   signal?: AbortSignal,
 ): Promise<AssistantReply> {
   const started = Date.now();
-  const clarification = getClarification(request, getCatalogIndex());
+  const salesHelp = resolveSalesHelp(request, getCatalogIndex());
+  const clarification = salesHelp
+    ? null
+    : getClarification(request, getCatalogIndex());
   if (clarification) {
     const latest = request.messages.at(-1)!.content;
     const city =
@@ -41,17 +45,27 @@ export async function answerRequest(
   const imported = request.importItems
     ? resolveImportedItems(request.importItems, getCatalogIndex())
     : null;
-  const plan: Selection = imported
+  const plan: Selection = salesHelp
     ? {
-        intent: "product",
+        intent: salesHelp.kind === "budget" ? "alternative" : "product",
         language: "ru",
         city: null,
-        items: imported.items,
+        items: [{ id: salesHelp.productId, quantity: salesHelp.quantity }],
         alternativeIds: [],
         question: "",
-        topics: [],
+        topics: salesHelp.kind === "urgent" ? ["delivery"] : [],
       }
-    : await selectProducts(request, signal);
+    : imported
+      ? {
+          intent: "product",
+          language: "ru",
+          city: null,
+          items: imported.items,
+          alternativeIds: [],
+          question: "",
+          topics: [],
+        }
+      : await selectProducts(request, signal);
   const latest = request.messages.at(-1)!.content;
   if (
     !/на русском|по-русски/i.test(latest) &&
@@ -70,8 +84,11 @@ export async function answerRequest(
         comparison: compareProducts(original, normalizeDetail(p, p.fetchedAt)),
       }))
       .filter((item) => item.comparison)
-      .sort(
-        (a, b) => b.comparison!.matches.length - a.comparison!.matches.length,
+      .sort((a, b) =>
+        salesHelp?.kind === "budget"
+          ? (catalog.find((p) => p.id === a.id)?.price ?? Infinity) -
+            (catalog.find((p) => p.id === b.id)?.price ?? Infinity)
+          : b.comparison!.matches.length - a.comparison!.matches.length,
       )
       .map((item) => item.id);
     plan.alternativeIds = [
@@ -130,6 +147,17 @@ export async function answerRequest(
       if (!candidate || !(saleStock(candidate)! > 0)) continue;
       const comparison = compareProducts(original.product, candidate);
       if (!comparison) continue;
+      if (
+        salesHelp?.kind === "budget" &&
+        (comparison.blocked ||
+          candidate.price === null ||
+          original.product.price === null ||
+          candidate.price >= original.product.price ||
+          (candidate.unit &&
+            original.product.unit &&
+            candidate.unit !== original.product.unit))
+      )
+        continue;
       cards.push({
         product: candidate,
         localStock: cityStock(candidate, city),
@@ -193,6 +221,9 @@ export async function answerRequest(
         : `Проверь ${original.product.article} в Астане`,
     );
   return {
+    ...(salesHelp
+      ? { salesHelp: salesHelpResult(salesHelp, cards, city) }
+      : {}),
     ...(request.expectedItems
       ? { requestedLineCount: request.expectedItems }
       : {}),
@@ -209,6 +240,7 @@ export async function answerRequest(
           ? ["payment", "delivery", "minimum"]
           : [],
       plan.language,
+      original?.product,
     ),
     suggestions,
     cartChanged: false,

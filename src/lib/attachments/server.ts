@@ -4,6 +4,7 @@ import { PDFDocument } from "pdf-lib";
 import { AssistantError, selectProducts } from "../assistant/openai";
 import { asRecord } from "../catalog/normalize";
 import { findPhotoCodeMatches } from "./matching";
+import { extractOfficeText } from "./office";
 import { getCatalogIndex } from "../catalog/server";
 import {
   MAX_UPLOAD,
@@ -35,7 +36,7 @@ export async function analyzeAttachment(
   if (!kind || (mode === "photo" && kind !== "image"))
     throw new AssistantError(
       415,
-      "Поддерживаются фото JPEG, PNG, WebP и списки PDF, TXT, CSV.",
+      "Поддерживаются JPEG, PNG, WebP, PDF, Word DOCX, Excel XLSX, TXT и CSV. Старые DOC/XLS сохраните как DOCX/XLSX.",
     );
   const content: Record<string, unknown>[] = [
     {
@@ -96,6 +97,22 @@ export async function analyzeAttachment(
       filename: "procurement-list.pdf",
       file_data: `data:application/pdf;base64,${bytes.toString("base64")}`,
     });
+  } else if (kind === "docx" || kind === "xlsx") {
+    try {
+      content.push({
+        type: "input_text",
+        text: JSON.stringify({
+          untrustedFileText: await extractOfficeText(bytes, kind),
+        }),
+      });
+    } catch (error) {
+      throw new AssistantError(
+        400,
+        error instanceof Error
+          ? error.message
+          : "Не удалось прочитать Word/Excel.",
+      );
+    }
   } else {
     let text;
     try {

@@ -1,5 +1,6 @@
 import "server-only";
-import { asRecord } from "../catalog/normalize";
+import { structuredResponse, ResponseFailure } from "./responses";
+import { directSelection } from "./direct-selection";
 import { getCatalogIndex } from "../catalog/server";
 import { cities } from "./types";
 import type { ChatRequest, Selection } from "./types";
@@ -31,23 +32,19 @@ export async function selectProducts(
   request: ChatRequest,
   signal?: AbortSignal,
 ): Promise<Selection> {
+  const catalog = getCatalogIndex();
+  const direct = directSelection(request, catalog, cities);
+  if (direct) return direct;
   const key = process.env.OPENAI_API_KEY;
   if (!key) throw new AssistantError(503, "Ключ OpenAI ещё не настроен.");
-  const catalog = getCatalogIndex();
   try {
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${key}`,
-      },
-      signal: signal
-        ? AbortSignal.any([signal, AbortSignal.timeout(25000)])
-        : AbortSignal.timeout(25000),
-      body: JSON.stringify({
+    return await structuredResponse({
+      key,
+      signal,
+      validate: (value) =>
+        validateSelection(value, new Set(catalog.map((p) => p.id)), cities),
+      body: {
         model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
-        store: false,
-        max_output_tokens: 1300,
         instructions,
         input: [
           {
@@ -92,50 +89,15 @@ export async function selectProducts(
             },
           },
         },
-      }),
+      },
     });
-    const body = asRecord(await response.json());
-    if (!response.ok) {
-      if (response.status === 429)
-        throw new AssistantError(
-          429,
-          "Лимит OpenAI временно исчерпан. Попробуйте позже.",
-        );
-      if (response.status === 401 || response.status === 403)
-        throw new AssistantError(
-          503,
-          "Нужно проверить доступ к OpenAI в настройках сервера.",
-        );
-      throw new AssistantError(
-        502,
-        "AI временно недоступен. Каталог продолжает работать.",
-      );
-    }
-    if (body.status !== "completed" || !Array.isArray(body.output))
-      throw new AssistantError(
-        502,
-        "AI не завершил разбор. Попробуйте сократить запрос.",
-      );
-    const output = body.output
-      .flatMap((item) =>
-        Array.isArray(asRecord(item).content)
-          ? (asRecord(item).content as unknown[])
-          : [],
-      )
-      .map(asRecord)
-      .filter((item) => item.type === "output_text")
-      .map((item) => item.text)
-      .join("");
-    return validateSelection(
-      JSON.parse(output),
-      new Set(catalog.map((p) => p.id)),
-      cities,
-    );
   } catch (error) {
-    if (error instanceof AssistantError) throw error;
+    if (error instanceof ResponseFailure)
+      throw new AssistantError(error.status, error.message);
+    if (signal?.aborted) throw error;
     throw new AssistantError(
       502,
-      "Не удалось разобрать запрос. Попробуйте ещё раз или уточните артикул.",
+      "Не удалось разобрать запрос. Укажите артикул или откройте каталог.",
     );
   }
 }

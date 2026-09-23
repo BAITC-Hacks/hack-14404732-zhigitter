@@ -28,6 +28,24 @@ export function validateRequest(
     total += message.content.length;
   }
   if (total > 22000 || data.messages.at(-1).role !== "user") return null;
+  if (data.salesHelp !== undefined) {
+    if (!data.salesHelp || typeof data.salesHelp !== "object") return null;
+    const help = data.salesHelp as Record<string, unknown>;
+    if (
+      !["budget", "urgent", "approval", "compatibility"].includes(
+        String(help.kind),
+      ) ||
+      !Number.isSafeInteger(help.productId) ||
+      Number(help.productId) < 1 ||
+      !(
+        help.quantity === null ||
+        (Number.isSafeInteger(help.quantity) &&
+          Number(help.quantity) > 0 &&
+          Number(help.quantity) <= 100000)
+      )
+    )
+      return null;
+  }
   if (
     data.expectedItems !== undefined &&
     (!Number.isSafeInteger(data.expectedItems) ||
@@ -54,6 +72,9 @@ export function validateRequest(
     return null;
   return {
     city: data.city,
+    ...(data.salesHelp
+      ? { salesHelp: data.salesHelp as ChatRequest["salesHelp"] }
+      : {}),
     ...(data.expectedItems !== undefined
       ? { expectedItems: Number(data.expectedItems) }
       : {}),

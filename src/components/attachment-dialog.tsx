@@ -165,7 +165,7 @@ export function AttachmentDialog({
       <p className="attachment-intro">
         {mode === "photo"
           ? "Сфотографируйте товар и маркировку крупным планом. Покажем возможные совпадения из каталога EKT."
-          : "PDF до 5 страниц, TXT или CSV в UTF-8. До 4 позиций за один подбор. Сначала проверите распознанный список."}
+          : "PDF до 5 страниц, Word DOCX, Excel XLSX, TXT или CSV в UTF-8. До 4 позиций за подбор. Сначала проверите распознанный список."}
       </p>
       {!result && (
         <>
@@ -176,7 +176,7 @@ export function AttachmentDialog({
               accept={
                 mode === "photo"
                   ? "image/jpeg,image/png,image/webp"
-                  : ".pdf,.txt,.csv,image/jpeg,image/png,image/webp"
+                  : ".pdf,.docx,.xlsx,.txt,.csv,image/jpeg,image/png,image/webp"
               }
               disabled={busy}
               onChange={(e) => chooseFile(e.target.files?.[0] || null)}
@@ -198,7 +198,7 @@ export function AttachmentDialog({
             <span>
               {mode === "photo"
                 ? "JPEG, PNG, WebP · до 15 МБ · фото уменьшается перед отправкой"
-                : "PDF / TXT / CSV до 3 МБ или фото списка"}
+                : "PDF / DOCX / XLSX / TXT / CSV до 3 МБ или фото списка"}
             </span>
           </label>
           <p className="attachment-privacy">

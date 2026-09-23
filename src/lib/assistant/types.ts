@@ -13,7 +13,13 @@ export const cities = [
 ] as const;
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 export type ImportedItem = { query: string; quantity: number };
+export type SalesHelp = {
+  kind: "budget" | "urgent" | "approval" | "compatibility";
+  productId: number;
+  quantity: number | null;
+};
 export type ChatRequest = {
+  salesHelp?: SalesHelp;
   messages: ChatMessage[];
   city: string;
   expectedItems?: number;
@@ -46,6 +52,12 @@ export type Terms = {
   checkedAt: string;
 };
 export type AssistantReply = {
+  salesHelp?: {
+    kind: SalesHelp["kind"];
+    title: string;
+    summary: string;
+    draft?: string;
+  };
   clarification?: boolean;
   requestedLineCount?: number;
   id: string;

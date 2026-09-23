@@ -4,6 +4,8 @@ import "./cart.css";
 import "./attachments.css";
 import "./comparison.css";
 import "./phase6-polish.css";
+import "./sales-help.css";
+import "./phase7-storefront.css";
 
 export const metadata: Metadata = {
   title: "Комплект AI — помощник по закупкам",

@@ -5,7 +5,7 @@ export async function GET() {
     {
       status: "ok",
       app: "komplekt-ai",
-      phase: 6,
+      phase: 7,
       integrations: {
         catalog: "implemented",
         ai: process.env.OPENAI_API_KEY ? "configured" : "missing_key",

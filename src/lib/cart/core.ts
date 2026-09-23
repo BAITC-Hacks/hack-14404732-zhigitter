@@ -87,6 +87,19 @@ export function evaluateSelections(
         409,
         `${product.article}: противоречие в характеристиках. Нужна проверка поставщика.`,
       );
+    const saleMultiple = Number(product.properties.KRATNOST_MIN);
+    const totalRequested = items
+      .filter((line) => line.productId === item.productId)
+      .reduce((sum, line) => sum + line.quantity, 0);
+    if (
+      Number.isSafeInteger(saleMultiple) &&
+      saleMultiple > 1 &&
+      totalRequested % saleMultiple !== 0
+    )
+      throw new CartError(
+        409,
+        `${product.article}: кратность продажи ${saleMultiple}. Укажите суммарное количество, кратное ${saleMultiple}. Корзина не изменена.`,
+      );
     if (product.price === null || product.price <= 0)
       throw new CartError(
         409,

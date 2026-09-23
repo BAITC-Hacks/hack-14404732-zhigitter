@@ -5,6 +5,8 @@ import Image from "next/image";
 import { ProposalPanel } from "./proposal-panel";
 import { AttachmentDialog } from "./attachment-dialog";
 import { CompareButton } from "./product-comparison";
+import { SalesHelpActions, SalesHelpAnswer } from "./sales-help";
+import { AssistantAvatar } from "./assistant-avatar";
 import {
   AlertTriangle,
   Camera,
@@ -23,6 +25,7 @@ import type {
   AssistantReply,
   ChatMessage,
   ImportedItem,
+  SalesHelp,
 } from "@/lib/assistant/types";
 
 type Entry =
@@ -125,6 +128,12 @@ function ResultCard({ card, city }: { card: AssistantCard; city: string }) {
             : shortfall > 0
               ? `В городе не хватает ${shortfall}. Остатки других складов — ниже; срок перемещения нужно подтвердить.`
               : "Указанного городского остатка достаточно. Резерв ещё не создан."}
+        </p>
+      )}
+      {p.properties.KRATNOST_MIN && Number(p.properties.KRATNOST_MIN) > 1 && (
+        <p className="quantity-note">
+          Кратность продажи из API: {p.properties.KRATNOST_MIN}. Количество в
+          корзине должно быть кратно этому значению.
         </p>
       )}
       {card.conflicts.map((conflict) => (
@@ -324,7 +333,11 @@ export function AssistantChat({
     setDraft(text);
     textarea.current?.focus();
   }
-  async function send(override?: string, importItems?: ImportedItem[]) {
+  async function send(
+    override?: string,
+    importItems?: ImportedItem[],
+    salesHelp?: SalesHelp,
+  ) {
     const text = (override ?? draft).trim();
     if (!text || active.current) return;
     const controller = new AbortController();
@@ -339,6 +352,7 @@ export function AssistantChat({
         body: JSON.stringify({
           city,
           ...(importItems ? { importItems } : {}),
+          ...(salesHelp ? { salesHelp } : {}),
           messages: [...history(entries), { role: "user", content: text }],
         }),
         signal: controller.signal,
@@ -373,7 +387,7 @@ export function AssistantChat({
       <section className="chat-panel" aria-labelledby="assistant-title">
         <div className="panel-heading">
           <div className="assistant-avatar">
-            <Sparkles size={20} />
+            <AssistantAvatar size={38} />
           </div>
           <div>
             <h2 id="assistant-title">Ваш помощник</h2>
@@ -431,10 +445,13 @@ export function AssistantChat({
             ) : (
               <div key={entry.id} className="assistant-message">
                 <div className="message-label">
-                  <Sparkles size={13} /> Комплект AI{" "}
+                  <AssistantAvatar size={24} /> Комплект AI{" "}
                   <span>{entry.reply.city}</span>
                 </div>
                 <p className="assistant-answer">{entry.reply.text}</p>
+                {entry.reply.salesHelp && (
+                  <SalesHelpAnswer help={entry.reply.salesHelp} />
+                )}
                 {entry.reply.notices.map((notice, i) => (
                   <p className="answer-notice" key={i}>
                     <AlertTriangle size={15} />
@@ -500,6 +517,13 @@ export function AssistantChat({
               Загрузить список
             </button>
           </div>
+          {reply && (
+            <SalesHelpActions
+              reply={reply}
+              disabled={busy}
+              onChoose={(text, help) => void send(text, undefined, help)}
+            />
+          )}
           {reply && !busy && (
             <div className="followup-chips">
               {reply.suggestions.map((suggestion) => (

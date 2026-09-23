@@ -3,7 +3,7 @@ export const MAX_UPLOAD = 3 * 1024 * 1024;
 export function fileKind(
   bytes: Uint8Array,
   name: string,
-): "image" | "pdf" | "text" | null {
+): "image" | "pdf" | "text" | "docx" | "xlsx" | null {
   if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff)
     return "image";
   if (
@@ -16,6 +16,15 @@ export function fileKind(
     String.fromCharCode(...bytes.slice(start, end));
   if (ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP") return "image";
   if (ascii(0, 5) === "%PDF-") return "pdf";
+  if (
+    bytes[0] === 0x50 &&
+    bytes[1] === 0x4b &&
+    bytes[2] === 3 &&
+    bytes[3] === 4
+  ) {
+    if (/\.docx$/i.test(name)) return "docx";
+    if (/\.xlsx$/i.test(name)) return "xlsx";
+  }
   if (/\.(txt|csv)$/i.test(name) && !bytes.includes(0)) return "text";
   return null;
 }
