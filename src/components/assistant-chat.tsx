@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ProposalPanel } from "./proposal-panel";
 import { AttachmentDialog } from "./attachment-dialog";
+import { CompareButton } from "./product-comparison";
 import {
   AlertTriangle,
   Camera,
@@ -236,6 +237,7 @@ function ResultCard({ card, city }: { card: AssistantCard; city: string }) {
           </a>
         )}
       </div>
+      <CompareButton product={p} />
     </article>
   );
 }
@@ -248,6 +250,7 @@ function history(entries: Entry[]): ChatMessage[] {
           role: "assistant",
           content: JSON.stringify({
             text: entry.reply.text,
+            clarification: entry.reply.clarification === true,
             city: entry.reply.city,
             items: entry.reply.cards.map((c) => ({
               id: c.product.id,
@@ -295,7 +298,12 @@ export function AssistantChat({
           container.scrollTop -
           18
         : container.scrollHeight;
-    container.scrollTo({ top, behavior: "smooth" });
+    container.scrollTo({
+      top,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+    });
     if (!pending && entries.length)
       textarea.current?.focus({ preventScroll: true });
   }, [entries, pending]);

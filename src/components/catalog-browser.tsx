@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { cityStock } from "@/lib/catalog/normalize";
+import { CompareButton } from "./product-comparison";
 import type {
   CatalogSearchResult,
   ProductDetail,
@@ -353,26 +354,28 @@ export function CatalogBrowser({ city }: { city: string }) {
             {result.products.length ? (
               <div className="product-grid">
                 {result.products.map((product) => (
-                  <button
-                    key={product.id}
-                    className="product-card"
-                    onClick={() => setSelected(product)}
-                    aria-label={`Открыть ${product.name}`}
-                  >
-                    <ProductPhoto product={product} />
-                    <div className="product-card-body">
-                      <p className="product-article">
-                        {product.article || `ID ${product.id}`}
-                      </p>
-                      <h3>{product.name}</h3>
-                      <strong className="product-price">
-                        {money(product.price)}
-                      </strong>
-                      <span className="product-card-action">
-                        Проверить наличие <ArrowRight size={15} />
-                      </span>
-                    </div>
-                  </button>
+                  <div className="catalog-product-wrap" key={product.id}>
+                    <button
+                      className="product-card"
+                      onClick={() => setSelected(product)}
+                      aria-label={`Открыть ${product.name}`}
+                    >
+                      <ProductPhoto product={product} />
+                      <div className="product-card-body">
+                        <p className="product-article">
+                          {product.article || `ID ${product.id}`}
+                        </p>
+                        <h3>{product.name}</h3>
+                        <strong className="product-price">
+                          {money(product.price)}
+                        </strong>
+                        <span className="product-card-action">
+                          Проверить наличие <ArrowRight size={15} />
+                        </span>
+                      </div>
+                    </button>
+                    <CompareButton product={product} />
+                  </div>
                 ))}
               </div>
             ) : (

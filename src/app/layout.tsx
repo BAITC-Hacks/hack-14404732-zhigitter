@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./cart.css";
 import "./attachments.css";
+import "./comparison.css";
+import "./phase6-polish.css";
 
 export const metadata: Metadata = {
   title: "Комплект AI — помощник по закупкам",

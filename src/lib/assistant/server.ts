@@ -6,6 +6,8 @@ import { compareProducts, detectConflicts, saleStock } from "./facts";
 import { selectProducts } from "./openai";
 import { purchaseTerms } from "./terms";
 import { resolveImportedItems } from "../attachments/import-matching";
+import { getClarification } from "./clarification";
+import { cities } from "./types";
 import type {
   AssistantCard,
   AssistantReply,
@@ -18,6 +20,24 @@ export async function answerRequest(
   signal?: AbortSignal,
 ): Promise<AssistantReply> {
   const started = Date.now();
+  const clarification = getClarification(request, getCatalogIndex());
+  if (clarification) {
+    const latest = request.messages.at(-1)!.content;
+    const city =
+      cities.find((c) => latest.toLowerCase().includes(c.toLowerCase())) ||
+      request.city;
+    return {
+      ...clarification,
+      clarification: true,
+      id: randomUUID(),
+      city,
+      cards: [],
+      notices: [],
+      terms: [],
+      cartChanged: false,
+      elapsedMs: Date.now() - started,
+    };
+  }
   const imported = request.importItems
     ? resolveImportedItems(request.importItems, getCatalogIndex())
     : null;

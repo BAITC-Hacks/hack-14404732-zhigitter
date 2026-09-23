@@ -46,6 +46,7 @@ export type Terms = {
   checkedAt: string;
 };
 export type AssistantReply = {
+  clarification?: boolean;
   requestedLineCount?: number;
   id: string;
   text: string;
