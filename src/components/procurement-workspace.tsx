@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { CatalogBrowser } from "./catalog-browser";
 import {
   ArrowRight,
   Check,
@@ -34,6 +35,7 @@ const examples = [
 export function ProcurementWorkspace() {
   const [draft, setDraft] = useState("");
   const [city, setCity] = useState("Алматы");
+  const [view, setView] = useState<"catalog" | "assistant">("catalog");
   const textarea = useRef<HTMLTextAreaElement>(null);
 
   function chooseExample(text: string) {
@@ -102,131 +104,149 @@ export function ProcurementWorkspace() {
           </div>
         </div>
 
-        <div className="workspace-grid">
-          <section className="chat-panel" aria-labelledby="assistant-title">
-            <div className="panel-heading">
-              <div className="assistant-avatar">
-                <Sparkles size={20} />
+        <nav className="workspace-tabs" aria-label="Рабочее пространство">
+          <button
+            aria-pressed={view === "catalog"}
+            onClick={() => setView("catalog")}
+          >
+            <Package size={16} /> Каталог
+          </button>
+          <button
+            aria-pressed={view === "assistant"}
+            onClick={() => setView("assistant")}
+          >
+            <Sparkles size={16} /> Помощник <span>Скоро</span>
+          </button>
+        </nav>
+        {view === "catalog" ? (
+          <CatalogBrowser city={city} />
+        ) : (
+          <div className="workspace-grid">
+            <section className="chat-panel" aria-labelledby="assistant-title">
+              <div className="panel-heading">
+                <div className="assistant-avatar">
+                  <Sparkles size={20} />
+                </div>
+                <div>
+                  <h2 id="assistant-title">Ваш помощник</h2>
+                  <p>Подбор по каталогу ekt.kz</p>
+                </div>
+                <span className="stage-label">Скоро</span>
               </div>
-              <div>
-                <h2 id="assistant-title">Ваш помощник</h2>
-                <p>Подбор по каталогу ekt.kz</p>
+              <div className="chat-content">
+                <div className="welcome-symbol">
+                  <Package size={34} strokeWidth={1.35} />
+                  <span>
+                    <Sparkles size={13} />
+                  </span>
+                </div>
+                <h3>С чего начнём закупку?</h3>
+                <p className="welcome-copy">
+                  Подготовьте список товаров или начните с артикула.
+                  <br className="desktop-break" /> Здесь появятся подбор,
+                  наличие и варианты замены.
+                </p>
+                <div className="example-list">
+                  {examples.map((example, index) => (
+                    <button
+                      key={example.label}
+                      type="button"
+                      onClick={() => chooseExample(example.text)}
+                    >
+                      <span className="example-number">0{index + 1}</span>
+                      <span>{example.label}</span>
+                      <ArrowRight size={16} />
+                    </button>
+                  ))}
+                </div>
+                <div className="phase-note">
+                  <span className="phase-dot" />
+                  <p>
+                    Каталог уже подключён. Готовим AI-помощника; сейчас можно
+                    составить черновик запроса.
+                  </p>
+                </div>
               </div>
-              <span className="stage-label">Скоро</span>
-            </div>
-            <div className="chat-content">
-              <div className="welcome-symbol">
-                <Package size={34} strokeWidth={1.35} />
-                <span>
-                  <Sparkles size={13} />
-                </span>
-              </div>
-              <h3>С чего начнём закупку?</h3>
-              <p className="welcome-copy">
-                Подготовьте список товаров или начните с артикула.
-                <br className="desktop-break" /> Здесь появятся подбор, наличие
-                и варианты замены.
-              </p>
-              <div className="example-list">
-                {examples.map((example, index) => (
-                  <button
-                    key={example.label}
-                    type="button"
-                    onClick={() => chooseExample(example.text)}
-                  >
-                    <span className="example-number">0{index + 1}</span>
-                    <span>{example.label}</span>
-                    <ArrowRight size={16} />
-                  </button>
-                ))}
-              </div>
-              <div className="phase-note">
-                <span className="phase-dot" />
-                <p>
-                  Готовим подключение каталога и AI. Сейчас можно составить
-                  черновик запроса.
+              <div className="composer-area">
+                <div className="composer">
+                  <label className="sr-only" htmlFor="request-draft">
+                    Ваш список товаров
+                  </label>
+                  <textarea
+                    id="request-draft"
+                    ref={textarea}
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value)}
+                    placeholder="Например: нужны 10 автоматов на 160 А…"
+                    maxLength={6000}
+                    rows={3}
+                  />
+                  <div className="composer-bottom">
+                    <span className="attachment-hint">
+                      <Paperclip size={17} /> Файлы — на следующем этапе
+                    </span>
+                    <button
+                      className="send-button"
+                      disabled
+                      aria-label="Отправка появится после подключения помощника"
+                      title="Помощник ещё не подключён"
+                    >
+                      <Send size={17} />
+                    </button>
+                  </div>
+                </div>
+                <p className="composer-caption">
+                  <ShieldCheck size={13} /> Добавление в корзину — только с
+                  вашего подтверждения
                 </p>
               </div>
-            </div>
-            <div className="composer-area">
-              <div className="composer">
-                <label className="sr-only" htmlFor="request-draft">
-                  Ваш список товаров
-                </label>
-                <textarea
-                  id="request-draft"
-                  ref={textarea}
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  placeholder="Например: нужны 10 автоматов на 160 А…"
-                  maxLength={6000}
-                  rows={3}
-                />
-                <div className="composer-bottom">
-                  <span className="attachment-hint">
-                    <Paperclip size={17} /> Файлы — на следующем этапе
-                  </span>
-                  <button
-                    className="send-button"
-                    disabled
-                    aria-label="Отправка появится после подключения помощника"
-                    title="Помощник ещё не подключён"
-                  >
-                    <Send size={17} />
-                  </button>
-                </div>
-              </div>
-              <p className="composer-caption">
-                <ShieldCheck size={13} /> Добавление в корзину — только с вашего
-                подтверждения
-              </p>
-            </div>
-          </section>
+            </section>
 
-          <aside className="order-panel" aria-labelledby="order-title">
-            <div className="order-header">
-              <h2 id="order-title">Ваше предложение</h2>
-              <span className="count-badge">0</span>
-            </div>
-            <div className="order-empty">
-              <span className="empty-icon">
-                <FileText size={29} strokeWidth={1.4} />
-              </span>
-              <h3>Здесь будет ваш заказ</h3>
-              <p>
-                Товары, количество и стоимость
-                <br />
-                соберём в одном месте.
-              </p>
-              <div className="empty-lines" aria-hidden="true">
-                <span />
-                <span />
-                <span />
+            <aside className="order-panel" aria-labelledby="order-title">
+              <div className="order-header">
+                <h2 id="order-title">Ваше предложение</h2>
+                <span className="count-badge">0</span>
               </div>
-            </div>
-            <div className="order-steps">
-              <p className="tiny-label">КАК БУДЕТ РАБОТАТЬ ПОДБОР</p>
-              {[
-                "Укажете, что нужно",
-                "Проверите товары и замены",
-                "Подтвердите корзину",
-              ].map((step, index) => (
-                <div key={step}>
-                  <span>{index + 1}</span>
-                  <p>{step}</p>
+              <div className="order-empty">
+                <span className="empty-icon">
+                  <FileText size={29} strokeWidth={1.4} />
+                </span>
+                <h3>Здесь будет ваш заказ</h3>
+                <p>
+                  Товары, количество и стоимость
+                  <br />
+                  соберём в одном месте.
+                </p>
+                <div className="empty-lines" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
                 </div>
-              ))}
-            </div>
-            <div className="order-footer">
-              <Check size={16} />
-              <p>
-                Цены и остатки появятся
-                <br />
-                после подключения каталога.
-              </p>
-            </div>
-          </aside>
-        </div>
+              </div>
+              <div className="order-steps">
+                <p className="tiny-label">КАК БУДЕТ РАБОТАТЬ ПОДБОР</p>
+                {[
+                  "Укажете, что нужно",
+                  "Проверите товары и замены",
+                  "Подтвердите корзину",
+                ].map((step, index) => (
+                  <div key={step}>
+                    <span>{index + 1}</span>
+                    <p>{step}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="order-footer">
+                <Check size={16} />
+                <p>
+                  Цены и остатки доступны
+                  <br />
+                  во вкладке «Каталог».
+                </p>
+              </div>
+            </aside>
+          </div>
+        )}
         <footer className="site-footer">
           <span>Комплект AI · Команда Zhigitter</span>
           <a href="https://ekt.kz/" target="_blank" rel="noreferrer">
