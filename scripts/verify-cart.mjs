@@ -19,7 +19,14 @@ function client() {
         cut = first.indexOf("=");
       cookies.set(first.slice(0, cut), first.slice(cut + 1));
     }
-    return { status: response.status, data: await response.json() };
+    return {
+      status: response.status,
+      contentType: response.headers.get("content-type"),
+      disposition: response.headers.get("content-disposition"),
+      data: response.headers.get("content-type")?.includes("text/csv")
+        ? await response.text()
+        : await response.json(),
+    };
   };
 }
 const api = client();
@@ -96,6 +103,12 @@ assert.equal(
 const saved = await api("");
 assert.equal(saved.data.state.items[0].quantity, 10);
 assert.equal(saved.data.total, quote.data.total);
+const csv = await api("/export");
+assert.equal(csv.status, 200);
+assert.match(csv.contentType, /text\/csv/);
+assert.match(csv.disposition, /attachment/);
+assert.match(csv.data, /027024/);
+assert.match(csv.data, /"10"/);
 const conflict = await api("/quote", {
   city: "Алматы",
   operation: "append",
@@ -147,6 +160,7 @@ console.log(
         "tampered token rejected",
         "cross-session token rejected",
         "confirmed cart persists",
+        "CSV attachment exports saved cart",
         "repeat confirmation idempotent",
         "160/250 A conflict blocked",
         "clear requires confirmation",

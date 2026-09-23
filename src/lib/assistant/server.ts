@@ -5,14 +5,33 @@ import { cityStock, normalizeDetail } from "../catalog/normalize";
 import { compareProducts, detectConflicts, saleStock } from "./facts";
 import { selectProducts } from "./openai";
 import { purchaseTerms } from "./terms";
-import type { AssistantCard, AssistantReply, ChatRequest } from "./types";
+import { resolveImportedItems } from "../attachments/import-matching";
+import type {
+  AssistantCard,
+  AssistantReply,
+  ChatRequest,
+  Selection,
+} from "./types";
 
 export async function answerRequest(
   request: ChatRequest,
   signal?: AbortSignal,
 ): Promise<AssistantReply> {
   const started = Date.now();
-  const plan = await selectProducts(request, signal);
+  const imported = request.importItems
+    ? resolveImportedItems(request.importItems, getCatalogIndex())
+    : null;
+  const plan: Selection = imported
+    ? {
+        intent: "product",
+        language: "ru",
+        city: null,
+        items: imported.items,
+        alternativeIds: [],
+        question: "",
+        topics: [],
+      }
+    : await selectProducts(request, signal);
   const latest = request.messages.at(-1)!.content;
   if (
     !/на русском|по-русски/i.test(latest) &&
@@ -41,7 +60,7 @@ export async function answerRequest(
   }
   const kk = plan.language === "kk",
     city = plan.city || request.city;
-  const notices: string[] = [],
+  const notices: string[] = imported?.notices || [],
     cards: AssistantCard[] = [];
   // Fetch all candidates concurrently, then decide which alternatives to display using actual stock.
   const ids = [
@@ -74,6 +93,10 @@ export async function answerRequest(
     });
   }
   const original = cards[0];
+  if (request.expectedItems && cards.length < request.expectedItems)
+    notices.push(
+      `В списке ${request.expectedItems} строк; найдено ${cards.length} отдельных товаров. Остальные строки не подтверждены (повторяющиеся товары могли объединиться). Проверьте сопоставление перед добавлением.`,
+    );
   const needAlternatives =
     original &&
     (plan.intent === "alternative" ||
@@ -150,6 +173,9 @@ export async function answerRequest(
         : `Проверь ${original.product.article} в Астане`,
     );
   return {
+    ...(request.expectedItems
+      ? { requestedLineCount: request.expectedItems }
+      : {}),
     id: randomUUID(),
     text,
     language: plan.language,

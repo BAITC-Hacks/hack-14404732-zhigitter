@@ -1,9 +1,16 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ShoppingBag, ArrowLeft, RefreshCw } from "lucide-react";
+import {
+  ShoppingBag,
+  ArrowLeft,
+  RefreshCw,
+  Copy,
+  Download,
+} from "lucide-react";
 import type { CartSelection, CartView, Quote } from "@/lib/cart/types";
 import { CartConfirmation, cartPost, money } from "./cart-confirmation";
+import { specificationText } from "@/lib/cart/export";
 
 async function readCart(): Promise<CartView> {
   const response = await fetch("/api/cart", { cache: "no-store" });
@@ -16,7 +23,19 @@ export function CartPage() {
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [quote, setQuote] = useState<Quote | null>(null),
-    [amounts, setAmounts] = useState<Record<number, number>>({});
+    [amounts, setAmounts] = useState<Record<number, number>>({}),
+    [exportStatus, setExportStatus] = useState("");
+  async function copySpecification() {
+    if (!cart) return;
+    try {
+      await navigator.clipboard.writeText(specificationText(cart));
+      setExportStatus(
+        "Спецификация скопирована — можно вставить в сообщение или документ.",
+      );
+    } catch {
+      setExportStatus("Браузер не разрешил копирование. Скачайте CSV.");
+    }
+  }
   const load = useCallback(async () => {
     try {
       const data = await readCart();
@@ -114,6 +133,28 @@ export function CartPage() {
           </div>
           {cart.items.length ? (
             <>
+              <div className="export-actions">
+                <button
+                  className="cart-secondary"
+                  onClick={() => void copySpecification()}
+                >
+                  <Copy size={16} />
+                  Скопировать спецификацию
+                </button>
+                <a className="cart-secondary" href="/api/cart/export" download>
+                  <Download size={16} />
+                  Скачать CSV
+                </a>
+              </div>
+              <p className="cart-muted">
+                Экспортируется сохранённый состав. Изменённые количества сначала
+                подтвердите кнопкой ниже.
+              </p>
+              {exportStatus && (
+                <p className="export-status" role="status">
+                  {exportStatus}
+                </p>
+              )}
               <div className="saved-cart-lines">
                 {cart.items.map(({ saved, product, issue }, index) => (
                   <article

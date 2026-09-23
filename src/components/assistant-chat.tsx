@@ -3,8 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ProposalPanel } from "./proposal-panel";
+import { AttachmentDialog } from "./attachment-dialog";
 import {
   AlertTriangle,
+  Camera,
+  FileUp,
   ArrowRight,
   ExternalLink,
   LoaderCircle,
@@ -18,6 +21,7 @@ import type {
   AssistantCard,
   AssistantReply,
   ChatMessage,
+  ImportedItem,
 } from "@/lib/assistant/types";
 
 type Entry =
@@ -273,7 +277,10 @@ export function AssistantChat({
     [draft, setDraft] = useState(""),
     [pending, setPending] = useState(""),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [attachmentMode, setAttachmentMode] = useState<"photo" | "list" | null>(
+      null,
+    );
   const textarea = useRef<HTMLTextAreaElement>(null),
     log = useRef<HTMLDivElement>(null),
     active = useRef<AbortController | null>(null);
@@ -300,7 +307,8 @@ export function AssistantChat({
     .find(
       (entry) =>
         entry.role === "assistant" &&
-        entry.reply.cards.some((card) => !card.comparison),
+        (entry.reply.cards.some((card) => !card.comparison) ||
+          !!entry.reply.requestedLineCount),
     );
   const proposalReply =
     productEntry?.role === "assistant" ? productEntry.reply : null;
@@ -308,8 +316,8 @@ export function AssistantChat({
     setDraft(text);
     textarea.current?.focus();
   }
-  async function send() {
-    const text = draft.trim();
+  async function send(override?: string, importItems?: ImportedItem[]) {
+    const text = (override ?? draft).trim();
     if (!text || active.current) return;
     const controller = new AbortController();
     active.current = controller;
@@ -322,6 +330,7 @@ export function AssistantChat({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           city,
+          ...(importItems ? { importItems } : {}),
           messages: [...history(entries), { role: "user", content: text }],
         }),
         signal: controller.signal,
@@ -465,6 +474,24 @@ export function AssistantChat({
           )}
         </div>
         <div className="composer-area">
+          <div className="attachment-buttons">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => setAttachmentMode("photo")}
+            >
+              <Camera size={16} />
+              Найти по фото
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => setAttachmentMode("list")}
+            >
+              <FileUp size={16} />
+              Загрузить список
+            </button>
+          </div>
           {reply && !busy && (
             <div className="followup-chips">
               {reply.suggestions.map((suggestion) => (
@@ -548,6 +575,22 @@ export function AssistantChat({
         reply={proposalReply}
         city={city}
       />
+      {attachmentMode && (
+        <AttachmentDialog
+          mode={attachmentMode}
+          city={city}
+          onClose={() => setAttachmentMode(null)}
+          onDraft={(text) => {
+            setAttachmentMode(null);
+            choose(text);
+          }}
+          onSearch={(text, importItems) => {
+            setAttachmentMode(null);
+            setDraft(text);
+            void send(text, importItems);
+          }}
+        />
+      )}
     </div>
   );
 }

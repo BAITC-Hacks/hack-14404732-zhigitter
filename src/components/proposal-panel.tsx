@@ -42,6 +42,7 @@ export function ProposalPanel({
     return { card, wanted, options, option };
   });
   const ready = rows.filter((row) => row.option?.covered === row.wanted).length,
+    requestedCount = Math.max(rows.length, reply?.requestedLineCount || 0),
     total = rows.reduce((sum, row) => sum + (row.option?.total || 0), 0),
     lines = rows.flatMap((row) => row.option?.lines || []);
   async function prepare() {
@@ -71,17 +72,17 @@ export function ProposalPanel({
         <ShoppingBag size={19} />
       </div>
       <div className="proposal-content">
-        {rows.length ? (
+        {rows.length || requestedCount ? (
           <>
             <div className="proposal-summary">
               <span>
-                Собрано {ready} из {rows.length} позиций
+                Собрано {ready} из {requestedCount} позиций
               </span>
               <strong>{money(total)}</strong>
               <small>
                 Предварительно, без доставки
-                {rows.length - ready > 0
-                  ? ` · ${rows.length - ready} поз. не собраны полностью`
+                {requestedCount - ready > 0
+                  ? ` · ${requestedCount - ready} поз. не собраны полностью`
                   : ""}
               </small>
             </div>

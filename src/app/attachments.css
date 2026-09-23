@@ -1,0 +1,272 @@
+.attachment-buttons {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 10px;
+  flex-wrap: wrap;
+}
+.attachment-buttons button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #d6dedc;
+  border-radius: 8px;
+  background: #fff;
+  padding: 9px 12px;
+  color: #304b42;
+  font-size: 12px;
+  font-weight: 650;
+  min-height: 40px;
+  cursor: pointer;
+}
+.attachment-buttons button:hover {
+  background: #eff6f1;
+}
+.attachment-buttons button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.attachment-dialog {
+  width: min(730px, calc(100vw - 28px));
+}
+.attachment-intro {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #566575;
+  margin: 14px 0 20px;
+}
+.attachment-drop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  background: #f4f7f5;
+  border: 1px dashed #9cb4a8;
+  border-radius: 12px;
+  padding: 28px 18px;
+  cursor: pointer;
+  position: relative;
+  color: #35564a;
+}
+.attachment-drop input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  cursor: pointer;
+}
+.attachment-drop:focus-within {
+  outline: 3px solid #e6ad56;
+  outline-offset: 3px;
+}
+.attachment-drop img {
+  object-fit: contain;
+  max-height: 160px;
+  border-radius: 7px;
+}
+.attachment-drop strong {
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+.attachment-drop span {
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.6;
+}
+.attachment-drop.is-busy {
+  opacity: 0.6;
+}
+.attachment-privacy {
+  font-size: 11px;
+  color: #65707e;
+  line-height: 1.7;
+  margin: 13px 0;
+}
+.attachment-analyze {
+  width: 100%;
+  margin: 8px 0;
+}
+.attachment-result h3 {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 16px 0 10px;
+}
+.vision-reading {
+  padding: 16px 18px;
+  border: 1px solid #d5e3dc;
+  background: #f1f7f3;
+  border-radius: 10px;
+  margin-top: 16px;
+}
+.vision-reading h3 {
+  margin: 8px 0;
+}
+.vision-reading p {
+  font-size: 13px;
+  margin: 7px 0;
+}
+.vision-reading small {
+  font-size: 12px;
+  color: #57665d;
+  line-height: 1.6;
+}
+.vision-quantity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+  margin: 16px 0;
+}
+.vision-quantity input {
+  width: 85px;
+  border: 1px solid #cbd5d1;
+  border-radius: 7px;
+  padding: 10px;
+  background: white;
+  font: inherit;
+}
+.vision-candidate {
+  display: flex;
+  gap: 14px;
+  padding: 17px 0;
+  border-bottom: 1px solid #e1e6e3;
+}
+.vision-candidate > img {
+  object-fit: contain;
+  width: 70px;
+  height: 70px;
+  flex-shrink: 0;
+  background: #fff;
+}
+.vision-candidate > div {
+  min-width: 0;
+}
+.vision-candidate small {
+  font-size: 11px;
+  color: #526d5e;
+  display: block;
+}
+.vision-candidate strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 6px 0;
+}
+.vision-candidate span {
+  display: block;
+  font-size: 11px;
+  color: #687583;
+}
+.vision-candidate button {
+  margin-top: 9px;
+}
+.attachment-text-button {
+  border: 0;
+  background: none;
+  padding: 10px 0;
+  color: #a23c26;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  text-align: left;
+}
+.attachment-safety {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 12px;
+  color: #536a5c;
+  line-height: 1.6;
+  margin: 16px 0;
+}
+.attachment-safety svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.import-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 95px 36px;
+  align-items: end;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e0e5e3;
+}
+.import-row label {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  gap: 6px;
+  color: #606c77;
+}
+.import-row input {
+  width: 100%;
+  border: 1px solid #cbd5d1;
+  border-radius: 7px;
+  padding: 10px;
+  background: white;
+  color: #1b2e27;
+  font-size: 14px;
+}
+.import-row > small {
+  grid-column: 1/-1;
+  color: #727a82;
+  font-size: 11px;
+}
+.export-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 20px 0 8px;
+}
+.export-status {
+  font-size: 12px;
+  color: #28633f;
+  margin: 8px 0;
+}
+.attachment-buttons button:focus-visible,
+.attachment-text-button:focus-visible {
+  outline: 3px solid #e6ad56;
+  outline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .attachment-dialog {
+    padding: 18px;
+  }
+  .attachment-intro {
+    font-size: 13px;
+  }
+  .attachment-drop {
+    padding: 24px 12px;
+  }
+  .attachment-buttons button {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 8px;
+  }
+  .vision-quantity input,
+  .import-row input {
+    font-size: 16px;
+  }
+  .vision-candidate {
+    gap: 10px;
+  }
+  .vision-candidate > img {
+    width: 52px;
+    height: 52px;
+  }
+  .vision-candidate strong {
+    font-size: 13px;
+  }
+  .import-row {
+    grid-template-columns: minmax(0, 1fr) 74px 32px;
+    gap: 7px;
+  }
+  .import-row .cart-icon-button {
+    width: 32px;
+    height: 36px;
+  }
+  .export-actions > * {
+    flex: 1;
+  }
+}

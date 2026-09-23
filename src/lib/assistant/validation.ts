@@ -28,8 +28,44 @@ export function validateRequest(
     total += message.content.length;
   }
   if (total > 22000 || data.messages.at(-1).role !== "user") return null;
+  if (
+    data.expectedItems !== undefined &&
+    (!Number.isSafeInteger(data.expectedItems) ||
+      Number(data.expectedItems) < 1 ||
+      Number(data.expectedItems) > 4)
+  )
+    return null;
+  if (
+    data.importItems !== undefined &&
+    (!Array.isArray(data.importItems) ||
+      data.importItems.length < 1 ||
+      data.importItems.length > 4 ||
+      data.importItems.some(
+        (item) =>
+          !item ||
+          typeof item.query !== "string" ||
+          !item.query.trim() ||
+          item.query.length > 250 ||
+          !Number.isSafeInteger(item.quantity) ||
+          item.quantity < 1 ||
+          item.quantity > 100000,
+      ))
+  )
+    return null;
   return {
     city: data.city,
+    ...(data.expectedItems !== undefined
+      ? { expectedItems: Number(data.expectedItems) }
+      : {}),
+    ...(Array.isArray(data.importItems)
+      ? {
+          importItems: data.importItems.map((item) => ({
+            query: item.query.trim(),
+            quantity: item.quantity,
+          })),
+          expectedItems: data.importItems.length,
+        }
+      : {}),
     messages: data.messages.map((m) => ({
       role: m.role,
       content: m.content.trim(),
