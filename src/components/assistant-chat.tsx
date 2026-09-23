@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { ProposalPanel } from "./proposal-panel";
 import {
   AlertTriangle,
   ArrowRight,
-  Check,
   ExternalLink,
   LoaderCircle,
   Package,
@@ -26,7 +26,7 @@ type Entry =
 const examples = [
   {
     label: "Проверить наличие",
-    text: "Нужны 10 штук 027228 в Алматы. Какие характеристики и остатки?",
+    text: "Нужны 10 штук 027024 в Алматы. Какие характеристики и остатки?",
   },
   {
     label: "Найти замену",
@@ -295,6 +295,15 @@ export function AssistantChat({
   useEffect(() => () => active.current?.abort(), []);
   const last = entries.findLast((entry) => entry.role === "assistant");
   const reply = last?.role === "assistant" ? last.reply : null;
+  const productEntry = [...entries]
+    .reverse()
+    .find(
+      (entry) =>
+        entry.role === "assistant" &&
+        entry.reply.cards.some((card) => !card.comparison),
+    );
+  const proposalReply =
+    productEntry?.role === "assistant" ? productEntry.reply : null;
   function choose(text: string) {
     setDraft(text);
     textarea.current?.focus();
@@ -534,65 +543,11 @@ export function AssistantChat({
           </p>
         </div>
       </section>
-      <aside className="order-panel verification-panel">
-        <div className="order-header">
-          <h2>Проверка подбора</h2>
-          <ShieldCheck size={18} />
-        </div>
-        <div className="verification-content">
-          {reply ? (
-            <>
-              <p className="tiny-label">
-                ПОСЛЕДНИЙ ОТВЕТ · {reply.city.toUpperCase()}
-              </p>
-              <div className="verification-number">
-                {reply.cards.length}
-                <span>карточек проверено</span>
-              </div>
-              <div className="verification-line">
-                <Check size={16} />
-                <span>Цена и наличие из API</span>
-              </div>
-              <div className="verification-line">
-                <Check size={16} />
-                <span>Источник и время получения</span>
-              </div>
-              <div className="verification-line">
-                <AlertTriangle size={16} />
-                <span>
-                  {reply.cards.filter((c) => c.conflicts.length).length}{" "}
-                  карточек с противоречиями
-                </span>
-              </div>
-              <p className="source-note">
-                Последний ответ: {(reply.elapsedMs / 1000).toFixed(1)} с.
-                Доступность может измениться; резерв не создан.
-              </p>
-            </>
-          ) : (
-            <>
-              <div className="welcome-symbol">
-                <ShieldCheck size={30} />
-              </div>
-              <h3>Доверяй, но проверяй</h3>
-              <p>
-                У каждой цены — источник. У каждого варианта замены — сравнение.
-                Противоречия в характеристиках покажем отдельно.
-              </p>
-            </>
-          )}
-          <div className="next-phase-note">
-            <Package size={19} />
-            <div>
-              <strong>Корзина — следующий этап</strong>
-              <p>
-                Сейчас можно подобрать и сравнить товары. Ничего не добавляем и
-                не резервируем.
-              </p>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <ProposalPanel
+        key={`${proposalReply?.id || "empty"}-${city}`}
+        reply={proposalReply}
+        city={city}
+      />
     </div>
   );
 }
