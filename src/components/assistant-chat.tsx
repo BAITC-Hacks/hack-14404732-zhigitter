@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ProposalPanel } from "./proposal-panel";
 import { AttachmentDialog } from "./attachment-dialog";
-import { CompareButton } from "./product-comparison";
+import { CompareButton, ComparisonDetails } from "./product-comparison";
 import { SalesHelpActions, SalesHelpAnswer } from "./sales-help";
 import { AssistantAvatar } from "./assistant-avatar";
 import {
@@ -41,8 +41,8 @@ const examples = [
     text: "Нужен 007886 Legrand. Если его нет, найди аналог и объясни различия.",
   },
   {
-    label: "Доставка и оплата",
-    text: "Как оплатить заказ юрлицу и получить доставку в Алматы?",
+    label: "Сравнить цены",
+    text: "Сравни цены 027024 и 027228",
   },
 ];
 function formatMoney(value: number | null) {
@@ -260,6 +260,7 @@ function history(entries: Entry[]): ChatMessage[] {
           content: JSON.stringify({
             text: entry.reply.text,
             clarification: entry.reply.clarification === true,
+            priceComparison: entry.reply.priceComparison === true,
             city: entry.reply.city,
             items: entry.reply.cards.map((c) => ({
               id: c.product.id,
@@ -324,6 +325,7 @@ export function AssistantChat({
     .find(
       (entry) =>
         entry.role === "assistant" &&
+        !entry.reply.priceComparison &&
         (entry.reply.cards.some((card) => !card.comparison) ||
           !!entry.reply.requestedLineCount),
     );
@@ -458,13 +460,30 @@ export function AssistantChat({
                     {notice}
                   </p>
                 ))}
-                {entry.reply.cards.map((card) => (
-                  <ResultCard
-                    key={card.product.id}
-                    card={card}
-                    city={entry.reply.city}
-                  />
-                ))}
+                {entry.reply.priceComparison &&
+                entry.reply.cards.length === 2 ? (
+                  <section
+                    className="chat-price-comparison"
+                    aria-label="Сравнение цен в помощнике"
+                  >
+                    <h3>Сравнение цен</h3>
+                    <ComparisonDetails
+                      products={entry.reply.cards.map((c) => c.product)}
+                      city={entry.reply.city}
+                    />
+                    <p className="source-note">
+                      Сравнение не меняет ваш комплект и корзину.
+                    </p>
+                  </section>
+                ) : (
+                  entry.reply.cards.map((card) => (
+                    <ResultCard
+                      key={card.product.id}
+                      card={card}
+                      city={entry.reply.city}
+                    />
+                  ))
+                )}
                 {entry.reply.terms.map((term) => (
                   <div className="terms-card" key={term.title}>
                     <h3>{term.title}</h3>
@@ -503,6 +522,15 @@ export function AssistantChat({
             <button
               type="button"
               disabled={busy}
+              onClick={() =>
+                void send("Сравни цены товаров из последнего ответа")
+              }
+            >
+              Сравнить цены в чате
+            </button>
+            <button
+              type="button"
+              disabled={busy}
               onClick={() => setAttachmentMode("photo")}
             >
               <Camera size={16} />
@@ -517,7 +545,7 @@ export function AssistantChat({
               Загрузить список
             </button>
           </div>
-          {reply && (
+          {reply && !reply.priceComparison && (
             <SalesHelpActions
               reply={reply}
               disabled={busy}

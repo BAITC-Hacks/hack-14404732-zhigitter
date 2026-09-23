@@ -8,6 +8,8 @@ import { purchaseTerms } from "./terms";
 import { resolveImportedItems } from "../attachments/import-matching";
 import { getClarification } from "./clarification";
 import { resolveSalesHelp, salesHelpResult } from "./sales-help";
+import { resolveChatComparison } from "./chat-comparison";
+import { comparePrices } from "./price-comparison";
 import { cities } from "./types";
 import type {
   AssistantCard,
@@ -21,6 +23,67 @@ export async function answerRequest(
   signal?: AbortSignal,
 ): Promise<AssistantReply> {
   const started = Date.now();
+  const comparison = resolveChatComparison(request, getCatalogIndex());
+  if (comparison) {
+    const city =
+      cities.find((c) =>
+        request.messages
+          .at(-1)!
+          .content.toLowerCase()
+          .includes(c.toLowerCase()),
+      ) || request.city;
+    const results = await Promise.allSettled(
+      comparison.ids.map((id) => getProduct(id, true)),
+    );
+    const cards: AssistantCard[] = results.flatMap((result) =>
+      result.status === "fulfilled"
+        ? [
+            {
+              product: result.value,
+              requestedQuantity: null,
+              localStock: cityStock(result.value, city),
+              conflicts: detectConflicts(result.value),
+              comparison: null,
+            },
+          ]
+        : [],
+    );
+    const complete = comparison.ready && cards.length === 2;
+    let text = comparison.question;
+    if (complete) {
+      const [a, b] = cards.map((c) => c.product);
+      const price = comparePrices(a, b);
+      text =
+        price.difference === null
+          ? "Не хватает данных о цене одного из товаров — разницу не рассчитываю."
+          : price.difference === 0
+            ? "Цены в каталоге одинаковые. Ниже сравнил наличие и характеристики."
+            : `Разница цен в каталоге: ${new Intl.NumberFormat("ru-RU").format(price.difference)} ₸. Ниже цена у ${cards.find((c) => c.product.id === price.cheaperId)!.product.name}.`;
+      if (comparison.language === "kk")
+        text =
+          "EKT каталогындағы екі тауардың бағасы, қалдығы және сипаттамалары төменде салыстырылған.";
+    } else if (comparison.ready)
+      text =
+        "Не удалось обновить оба товара. Повторите сравнение — старые цены не использованы.";
+    return {
+      id: randomUUID(),
+      priceComparison: true,
+      clarification: !complete,
+      text,
+      city,
+      language: comparison.language,
+      cards,
+      terms: [],
+      notices: results.some((r) => r.status === "rejected")
+        ? ["Часть данных EKT сейчас недоступна."]
+        : [],
+      suggestions: complete
+        ? ["Какие условия доставки?"]
+        : ["Сравни цены 027024 и 027228"],
+      cartChanged: false,
+      elapsedMs: Date.now() - started,
+    };
+  }
   const salesHelp = resolveSalesHelp(request, getCatalogIndex());
   const clarification = salesHelp
     ? null

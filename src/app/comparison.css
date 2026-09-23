@@ -1,3 +1,60 @@
+.chat-price-comparison {
+  min-width: 0;
+  margin-top: 16px;
+  border: 1px solid #cddfe4;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.chat-price-comparison > h3,
+.chat-price-comparison > .source-note {
+  padding: 14px 18px;
+  margin: 0;
+}
+.chat-price-comparison .price-compare-table {
+  min-width: 560px;
+}
+.chat-price-comparison .compare-photo {
+  width: 58px;
+  height: 58px;
+}
+.chat-price-comparison .price-compare-table h3 {
+  font-size: 13px;
+}
+.chat-price-comparison .compare-table-wrap {
+  overflow-x: auto;
+}
+.compare-summary-prices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+.compare-summary-prices > div {
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #d7e1e8;
+  border-radius: 8px;
+}
+.compare-summary-prices span {
+  display: block;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.compare-summary-prices strong {
+  display: block;
+  font-size: 18px;
+}
+.compare-scroll-hint {
+  display: none;
+}
+@media (max-width: 600px) {
+  .compare-scroll-hint {
+    display: block;
+    margin: 10px 14px;
+    font-size: 12px;
+    color: #53677e;
+  }
+}
 .compare-root.has-selection {
   padding-bottom: 108px;
 }

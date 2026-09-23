@@ -52,6 +52,7 @@ export type Terms = {
   checkedAt: string;
 };
 export type AssistantReply = {
+  priceComparison?: boolean;
   salesHelp?: {
     kind: SalesHelp["kind"];
     title: string;

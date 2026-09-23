@@ -219,7 +219,7 @@ function ComparisonDialog({
   );
 }
 
-function ComparisonDetails({
+export function ComparisonDetails({
   products,
   city,
 }: {
@@ -282,6 +282,14 @@ function ComparisonDetails({
           </p>
         )}
         <small>{price.note}</small>
+        <div className="compare-summary-prices">
+          {products.map((p) => (
+            <div key={p.id}>
+              <span>{p.supplierArticle || p.article}</span>
+              <strong>{money(p.price)}</strong>
+            </div>
+          ))}
+        </div>
         {conflicts.some((items) => items.length > 0) && (
           <p className="compare-conflict">
             Есть противоречие в характеристиках поставщика. Не выбирайте замену
@@ -289,7 +297,15 @@ function ComparisonDetails({
           </p>
         )}
       </div>
-      <div className="compare-table-wrap">
+      <p className="compare-scroll-hint">
+        На узком экране таблицу можно прокрутить вбок →
+      </p>
+      <div
+        className="compare-table-wrap"
+        tabIndex={0}
+        role="region"
+        aria-label="Цены и характеристики двух товаров"
+      >
         <table className="price-compare-table">
           <caption className="sr-only">
             Цены, остатки и характеристики товаров из EKT
